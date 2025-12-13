@@ -12,6 +12,8 @@ enum MacroError: Error, CustomStringConvertible {
     }
 }
 
+// TODO: Maybe split this in multiple macros with some utility to reuse?
+
 public struct EZLogMacro: ExpressionMacro {
     public static func expansion(
         of node: some FreestandingMacroExpansionSyntax,
@@ -62,6 +64,8 @@ public struct EZLogMacro: ExpressionMacro {
                                 messageArgument: messageArgument)
     }
     
+    // TODO: use swift syntax builders to make this expression type safe
+
     static func expansionLog(
         loggerArgument: LabeledExprListSyntax.Element,
         level: DeclReferenceExprSyntax,

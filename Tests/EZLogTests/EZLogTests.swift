@@ -133,7 +133,7 @@ final class EZLogTests: XCTestCase {
         #endif
     }
     
-    func testMacro() throws {
+    func testLogWithAllLevels() throws {
         #if canImport(EZLogMacros)
         assertMacroExpansion("""
             #log(EZLogger(), level: .trace, "AAA")
@@ -163,7 +163,7 @@ final class EZLogTests: XCTestCase {
         #endif
     }
 
-    func testMacroWithStringLiteral() throws {
+    func testLogWithStringLiteralWithAllLevels() throws {
         #if canImport(EZLogMacros)
         assertMacroExpansion(
             #"""
@@ -190,4 +190,21 @@ final class EZLogTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
     }
+    
+    func testLogWithStringInterpolation() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion("""
+            #log(EZLogger(), level: .trace, "AAA \\(variable, privacy: .private)")
+            """,
+            expandedSource:
+            """
+            EZLogger().allows(level: .trace) ? EZLogger().logger.trace("AAA \\(variable, privacy: .private)") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
 }

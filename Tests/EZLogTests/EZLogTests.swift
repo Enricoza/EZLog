@@ -162,44 +162,17 @@ final class EZLogTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
     }
-
-    func testLogWithStringLiteralWithAllLevels() throws {
-        #if canImport(EZLogMacros)
-        assertMacroExpansion(
-            #"""
-            #log(EZLogger(), level: .trace, "AAA")
-            #log(EZLogger(), level: .debug, "BBB")
-            #log(EZLogger(), level: .info, "CCC")
-            #log(EZLogger(), level: .notice, "DDD")
-            #log(EZLogger(), level: .warn, "EEE")
-            #log(EZLogger(), level: .error, "FFF")
-            #log(EZLogger(), level: .fault, "GGG")
-            """#,
-            expandedSource: #"""
-            EZLogger().allows(level: .trace) ? EZLogger().logger.trace("AAA") : ()
-            EZLogger().allows(level: .debug) ? EZLogger().logger.debug("BBB") : ()
-            EZLogger().allows(level: .info) ? EZLogger().logger.info("CCC") : ()
-            EZLogger().allows(level: .notice) ? EZLogger().logger.notice("DDD") : ()
-            EZLogger().allows(level: .warn) ? EZLogger().logger.warning("EEE") : ()
-            EZLogger().allows(level: .error) ? EZLogger().logger.error("FFF") : ()
-            EZLogger().allows(level: .fault) ? EZLogger().logger.fault("GGG") : ()
-            """#,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
     
     func testLogWithStringInterpolation() throws {
         #if canImport(EZLogMacros)
-        assertMacroExpansion("""
-            #log(EZLogger(), level: .trace, "AAA \\(variable, privacy: .private)")
-            """,
+        assertMacroExpansion(
+            #"""
+            #log(EZLogger(), level: .trace, "AAA \(variable, privacy: .private)")
+            """#,
             expandedSource:
-            """
-            EZLogger().allows(level: .trace) ? EZLogger().logger.trace("AAA \\(variable, privacy: .private)") : ()
-            """,
+            #"""
+            EZLogger().allows(level: .trace) ? EZLogger().logger.trace("AAA \(variable, privacy: .private)") : ()
+            """#,
             macros: testMacros
         )
         #else

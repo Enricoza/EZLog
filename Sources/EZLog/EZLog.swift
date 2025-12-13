@@ -46,7 +46,6 @@ public struct MinLogLevel: RawRepresentable {
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
-    public static var shared: MinLogLevel = .verbose
 }
 
 public enum LogLevel: Int {
@@ -74,6 +73,6 @@ public struct EZLogger {
     }
     
     public func allows(level: LogLevel) -> Bool {
-        MinLogLevel.shared.rawValue <= level.rawValue && logLevel.rawValue <= level.rawValue
+        logLevel.rawValue <= level.rawValue
     }
 }

@@ -3,7 +3,6 @@ import OSLog
 
 
 let a = "abc"
-MinLogLevel.shared = .trace
 var logger = EZLogger(subsystem: "com.app.my", category: "SomeCategory")
 var other = EZLogger(subsystem: "com.app.my", category: "OtherCategory", logLevel: .error)
 

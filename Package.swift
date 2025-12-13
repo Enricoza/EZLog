@@ -44,6 +44,7 @@ let package = Package(
             name: "EZLogTests",
             dependencies: [
                 "EZLogMacros",
+                "EZLog",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ]
         ),

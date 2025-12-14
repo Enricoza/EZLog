@@ -18,7 +18,7 @@ public struct EZLogMacro: ExpressionMacro {
                 fatalError("Wrong OS log type \(macro)")
             }
             return try expansionLog(loggerArgument: arguments[0], 
-                                    level: macroToLevelName(macro: node.macro),
+                                    level: macroToLevelExpr(macro: node.macro),
                                     logMethod: logMethod,
                                     messageArgument: arguments[1])
         }
@@ -28,7 +28,7 @@ public struct EZLogMacro: ExpressionMacro {
                 fatalError("Arguments should be 3, got \(arguments.count)")
             }
             return try expansionLog(loggerArgument: arguments[0],
-                                    level: macroToLevelName(macro: "notice"),
+                                    level: macroToLevelExpr(macro: "notice"),
                                     logMethod: "log",
                                     messageArgument: arguments[1])
         }
@@ -44,25 +44,40 @@ public struct EZLogMacro: ExpressionMacro {
     ) throws -> ExprSyntax {
         guard let member = levelArgument.expression.as(MemberAccessExprSyntax.self),
               member.base == nil || member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text == "LogLevel" else {
-            // TODO: here i need to extract the full expression and call .log(level: \(expression).toOSLogType(), \(message))
-            fatalError("compiler bug: the macro does not have any arguments")
+            return try expansionLog(loggerArgument: loggerArgument,
+                                    level: levelArgument.expression,
+                                    logMethod: "log",
+                                    levelArgument: "\(levelArgument.expression).toOSLogType()",
+                                    messageArgument: messageArgument)
         }
         return try expansionLog(loggerArgument: loggerArgument,
-                                level: member.declName,
+                                level: ExprSyntax(member),
                                 logMethod: logMethod(argument: levelArgument),
                                 messageArgument: messageArgument)
     }
 
     static func expansionLog(
         loggerArgument: LabeledExprListSyntax.Element,
-        level: DeclReferenceExprSyntax,
+        level: ExprSyntax,
         logMethod: ExprSyntax,
+        levelArgument: ExprSyntax? = nil,
         messageArgument: LabeledExprListSyntax.Element
     ) throws -> ExprSyntax {
         let sanitizedLogger = sanitizeLoggerArgument(loggerArgument)
+        let methodExpression = logMethodExpr(logMethod: logMethod, levelArgument: levelArgument, messageArgument: messageArgument)
         return """
-        \(sanitizedLogger).allows(level: .\(level)) ? \(sanitizedLogger).logger.\(logMethod)(\(messageArgument)) : ()
+        \(sanitizedLogger).allows(level: \(level)) ? \(sanitizedLogger).logger.\(methodExpression) : ()
         """
+    }
+    
+    static func logMethodExpr(logMethod: ExprSyntax,
+                              levelArgument: ExprSyntax? = nil,
+                              messageArgument: LabeledExprListSyntax.Element) -> ExprSyntax {
+        if let levelArgument {
+            "\(logMethod)(level: \(levelArgument), \(messageArgument))"
+        } else {
+            "\(logMethod)(\(messageArgument))"
+        }
     }
     
     static func sanitizeLoggerArgument(_ argument: LabeledExprListSyntax.Element) -> ExprSyntax {
@@ -93,11 +108,11 @@ public struct EZLogMacro: ExpressionMacro {
         }
     }
     
-    static func macroToLevelName(macro: TokenSyntax) -> DeclReferenceExprSyntax {
+    static func macroToLevelExpr(macro: TokenSyntax) -> ExprSyntax {
         if macro.text == "err" {
-            return DeclReferenceExprSyntax(baseName: TokenSyntax(stringLiteral: "error"))
+            return ExprSyntax(".error")
         } else {
-            return DeclReferenceExprSyntax(baseName: macro)
+            return ExprSyntax(".\(macro)")
         }
     }
 }

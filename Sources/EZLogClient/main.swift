@@ -12,6 +12,9 @@ var other = EZLogger(subsystem: "com.app.my", category: "OtherCategory", logLeve
 #err(logger, "Some err \(a, attributes: "Some Attributes")")
 #fault(logger, "Some fault \(a, align: .none, privacy: .sensitive(mask: .hash), attributes: "Some")")
 
+typealias SomeLogLevel = LogLevel
+
+#log(logger, level: SomeLogLevel.debug, "something")
 
 extension EZLogger {
     static let sharedLevel = MinLogLevel.verbose

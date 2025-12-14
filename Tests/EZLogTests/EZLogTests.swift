@@ -222,7 +222,7 @@ final class EZLogTests: XCTestCase {
             """,
             expandedSource:
             """
-            EZLogger.myLog.allows(level: .trace) ? EZLogger.myLog.logger.trace("AAA") : ()
+            EZLogger.myLog.allows(level: LogLevel.trace) ? EZLogger.myLog.logger.trace("AAA") : ()
             """,
             macros: testMacros
         )
@@ -257,6 +257,23 @@ final class EZLogTests: XCTestCase {
             expandedSource:
             """
             EZLogger.myLog.allows(level: Namespace.someLevel) ? EZLogger.myLog.logger.log(level: Namespace.someLevel.toOSLogType(), "AAA") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testLogWithNamespacedLogger() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion(
+            """
+            #log(Namespace.myLog, level: someLevel, "AAA")
+            """,
+            expandedSource:
+            """
+            Namespace.myLog.allows(level: someLevel) ? Namespace.myLog.logger.log(level: someLevel.toOSLogType(), "AAA") : ()
             """,
             macros: testMacros
         )

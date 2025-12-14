@@ -20,9 +20,7 @@ public struct EZLogMacro: ExpressionMacro {
         in context: some MacroExpansionContext
     ) throws -> ExprSyntax {
         let macro = node.macro.text
-        let arguments = node.argumentList.reduce(into: []) { partialResult, next in
-            partialResult.append(next)
-        }
+        let arguments = node.argumentList.map { $0 }
         guard macro == "log" else {
             guard arguments.count == 2 else {
                 fatalError("Arguments should be 2, got \(arguments.count)")

@@ -180,4 +180,38 @@ final class EZLogTests: XCTestCase {
         #endif
     }
     
+    func testLogWithStaticExtensionWithType() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion(
+            """
+            #log(EZLogger.myLog, level: .trace, "AAA")
+            """,
+            expandedSource:
+            """
+            EZLogger.myLog.allows(level: .trace) ? EZLogger.myLog.logger.trace("AAA") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testLogWithStaticExtensionWithImpliedType() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion(
+            """
+            #log(.myLog, level: .trace, "AAA")
+            """,
+            expandedSource:
+            """
+            EZLogger.myLog.allows(level: .trace) ? EZLogger.myLog.logger.trace("AAA") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
 }
+

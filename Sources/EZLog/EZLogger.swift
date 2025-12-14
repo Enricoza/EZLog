@@ -8,17 +8,21 @@
 import Foundation
 import OSLog
 
-public protocol EZLogLimiter {
-    var logger: Logger { get }
-    func allows(level: LogLevel) -> Bool
-}
-
-public struct EZLogger: EZLogLimiter {
+public struct EZLogger {
     public let logger: Logger
     public var logLevel: MinLogLevel
     
+    public init(logLevel: MinLogLevel = .verbose) {
+        self.init(logger: Logger(), logLevel: logLevel)
+    }
+    
     public init(subsystem: String, category: String, logLevel: MinLogLevel = .verbose) {
         self.init(logger: Logger(subsystem: subsystem, category: category),
+                  logLevel: logLevel)
+    }
+    
+    public init(_ logObj: OSLog, logLevel: MinLogLevel = .verbose) {
+        self.init(logger: Logger(logObj),
                   logLevel: logLevel)
     }
     

@@ -70,9 +70,19 @@ public struct EZLogMacro: ExpressionMacro {
         logMethod: ExprSyntax,
         messageArgument: LabeledExprListSyntax.Element
     ) throws -> ExprSyntax {
+        let sanitizedLogger = sanitizeLoggerArgument(loggerArgument)
+        return """
+        \(sanitizedLogger).allows(level: .\(level)) ? \(sanitizedLogger).logger.\(logMethod)(\(messageArgument)) : ()
         """
-        \(loggerArgument.expression).allows(level: .\(level)) ? \(loggerArgument.expression).logger.\(logMethod)(\(messageArgument)) : ()
-        """
+    }
+    
+    static func sanitizeLoggerArgument(_ argument: LabeledExprListSyntax.Element) -> ExprSyntax {
+        guard var memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
+              memberAccess.base == nil else {
+            return argument.expression
+        }
+        memberAccess.base = "EZLogger"
+        return ExprSyntax(memberAccess)
     }
     
     static func logMethod(argument: LabeledExprListSyntax.Element) -> ExprSyntax {

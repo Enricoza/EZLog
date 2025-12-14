@@ -213,5 +213,56 @@ final class EZLogTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
     }
+    
+    func testLogWithLevelType() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion(
+            """
+            #log(.myLog, level: LogLevel.trace, "AAA")
+            """,
+            expandedSource:
+            """
+            EZLogger.myLog.allows(level: .trace) ? EZLogger.myLog.logger.trace("AAA") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testLogWithLevelVariable() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion(
+            """
+            #log(.myLog, level: someLevel, "AAA")
+            """,
+            expandedSource:
+            """
+            EZLogger.myLog.allows(level: someLevel) ? EZLogger.myLog.logger.log(level: someLevel.toOSLogType(), "AAA") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testLogWithNamespacedLevel() throws {
+        #if canImport(EZLogMacros)
+        assertMacroExpansion(
+            """
+            #log(.myLog, level: Namespace.someLevel, "AAA")
+            """,
+            expandedSource:
+            """
+            EZLogger.myLog.allows(level: Namespace.someLevel) ? EZLogger.myLog.logger.log(level: Namespace.someLevel.toOSLogType(), "AAA") : ()
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
 }
 

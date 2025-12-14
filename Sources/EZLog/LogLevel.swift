@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 public enum LogLevel: Int {
     case trace = 0
@@ -15,4 +16,14 @@ public enum LogLevel: Int {
     case warn = 400
     case error = 800
     case fault = 900
+    
+    public func toOSLogType() -> OSLogType {
+        switch self {
+        case .trace, .debug: .debug
+        case .info: .info
+        case .notice: .default
+        case .warn, .error: .error
+        case .fault: .fault
+        }
+    }
 }

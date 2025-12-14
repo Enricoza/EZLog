@@ -3,17 +3,6 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-enum MacroError: Error, CustomStringConvertible {
-    case unexpectedLoglevel
-    var description: String {
-        switch self {
-        case .unexpectedLoglevel: "Unexpected log level"
-        }
-    }
-}
-
-// TODO: Maybe split this in multiple macros with some utility to reuse?
-
 public struct EZLogMacro: ExpressionMacro {
     public static func expansion(
         of node: some FreestandingMacroExpansionSyntax,
@@ -53,16 +42,16 @@ public struct EZLogMacro: ExpressionMacro {
         levelArgument: LabeledExprListSyntax.Element,
         messageArgument: LabeledExprListSyntax.Element
     ) throws -> ExprSyntax {
-        guard let level = levelArgument.expression.as(MemberAccessExprSyntax.self)?.declName else {
+        guard let member = levelArgument.expression.as(MemberAccessExprSyntax.self),
+              member.base == nil || member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text == "LogLevel" else {
+            // TODO: here i need to extract the full expression and call .log(level: \(expression).toOSLogType(), \(message))
             fatalError("compiler bug: the macro does not have any arguments")
         }
         return try expansionLog(loggerArgument: loggerArgument,
-                                level: level,
+                                level: member.declName,
                                 logMethod: logMethod(argument: levelArgument),
                                 messageArgument: messageArgument)
     }
-    
-    // TODO: use swift syntax builders to make this expression type safe
 
     static func expansionLog(
         loggerArgument: LabeledExprListSyntax.Element,

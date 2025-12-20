@@ -12,6 +12,8 @@ public struct EZLogger {
     public let logger: Logger
     public var logLevel: MinLogLevel
     
+    public static let disabled: EZLogger = EZLogger(.disabled)
+    
     public init(logLevel: MinLogLevel = .verbose) {
         self.init(logger: Logger(), logLevel: logLevel)
     }

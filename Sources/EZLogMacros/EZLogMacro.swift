@@ -2,6 +2,40 @@ import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
+import SwiftDiagnostics
+
+struct WrongArgumentsCount: DiagnosticMessage {
+    
+    let expected: Int
+    let or: Int?
+    let actual: Int
+    
+    init(expected: Int, or: Int? = nil, actual: Int) {
+        self.expected = expected
+        self.or = or
+        self.actual = actual
+    }
+    
+    var diagnosticID: MessageID { MessageID(domain: "com.ez.logger", id: "WrongArgumentCount\(expected)-\(actual)") }
+    var message: String {
+        let expected = if let or {
+            "\(expected) or \(or)"
+        } else {
+            "\(expected)"
+        }
+        return """
+        Expecting \(expected) parameters but got \(actual).
+        This should not have happened.
+        Please open an issue at: https://github.com/Enricoza/EZLog
+        """
+    }
+
+    var severity: DiagnosticSeverity { .error }
+    
+    func diagnoseWith(node: some SyntaxProtocol) -> Diagnostic {
+        Diagnostic(node: node, message: self)
+    }
+}
 
 public struct EZLogMacro: ExpressionMacro {
     public static func expansion(
@@ -12,48 +46,50 @@ public struct EZLogMacro: ExpressionMacro {
         let arguments = node.argumentList.map { $0 }
         guard macro == "log" else {
             guard arguments.count == 2 else {
-                fatalError("Arguments should be 2, got \(arguments.count)")
+                throw DiagnosticsError(diagnostics: [
+                    WrongArgumentsCount(expected: 2, actual: arguments.count)
+                        .diagnoseWith(node: node.argumentList),
+                ])
             }
-            guard let logMethod = levelNameToLogMethod(macro) else {
-                fatalError("Wrong OS log type \(macro)")
-            }
-            return try expansionLog(loggerArgument: arguments[0], 
-                                    level: macroToLevelExpr(macro: node.macro),
-                                    logMethod: logMethod,
-                                    messageArgument: arguments[1])
+            return expansionLog(loggerArgument: arguments[0],
+                                level: macroToLevelExpr(macro: node.macro),
+                                logMethod: levelNameToLogMethod(macro),
+                                messageArgument: arguments[1])
         }
-        
         guard arguments.count == 3 else {
             guard arguments.count == 2 else {
-                fatalError("Arguments should be 3, got \(arguments.count)")
+                throw DiagnosticsError(diagnostics: [
+                    WrongArgumentsCount(expected: 2, or: 3, actual: arguments.count)
+                        .diagnoseWith(node: node.argumentList),
+                ])
             }
-            return try expansionLog(loggerArgument: arguments[0],
-                                    level: macroToLevelExpr(macro: "notice"),
-                                    logMethod: "log",
-                                    messageArgument: arguments[1])
+            return expansionLog(loggerArgument: arguments[0],
+                                level: macroToLevelExpr(macro: "notice"),
+                                logMethod: "log",
+                                messageArgument: arguments[1])
         }
-        return try expansionLog(loggerArgument: arguments[0], 
-                                levelArgument: arguments[1],
-                                messageArgument: arguments[2])
+        return expansionLog(loggerArgument: arguments[0],
+                            levelArgument: arguments[1],
+                            messageArgument: arguments[2])
     }
     
     static func expansionLog(
         loggerArgument: LabeledExprListSyntax.Element,
         levelArgument: LabeledExprListSyntax.Element,
         messageArgument: LabeledExprListSyntax.Element
-    ) throws -> ExprSyntax {
+    ) -> ExprSyntax {
         guard let member = levelArgument.expression.as(MemberAccessExprSyntax.self),
               member.base == nil || member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text == "LogLevel" else {
-            return try expansionLog(loggerArgument: loggerArgument,
-                                    level: levelArgument.expression,
-                                    logMethod: "log",
-                                    levelArgument: "\(levelArgument.expression).toOSLogType()",
-                                    messageArgument: messageArgument)
-        }
-        return try expansionLog(loggerArgument: loggerArgument,
-                                level: ExprSyntax(member),
-                                logMethod: logMethod(argument: levelArgument),
+            return expansionLog(loggerArgument: loggerArgument,
+                                level: levelArgument.expression,
+                                logMethod: "log",
+                                levelArgument: "\(levelArgument.expression).toOSLogType()",
                                 messageArgument: messageArgument)
+        }
+        return expansionLog(loggerArgument: loggerArgument,
+                            level: ExprSyntax(member),
+                            logMethod: levelNameToLogMethod(member.declName.baseName.text),
+                            messageArgument: messageArgument)
     }
 
     static func expansionLog(
@@ -62,7 +98,7 @@ public struct EZLogMacro: ExpressionMacro {
         logMethod: ExprSyntax,
         levelArgument: ExprSyntax? = nil,
         messageArgument: LabeledExprListSyntax.Element
-    ) throws -> ExprSyntax {
+    ) -> ExprSyntax {
         let sanitizedLogger = sanitizeLoggerArgument(loggerArgument)
         let methodExpression = logMethodExpr(logMethod: logMethod, levelArgument: levelArgument, messageArgument: messageArgument)
         return """
@@ -89,30 +125,19 @@ public struct EZLogMacro: ExpressionMacro {
         return ExprSyntax(memberAccess)
     }
     
-    static func logMethod(argument: LabeledExprListSyntax.Element) -> ExprSyntax {
-        guard let levelName = argument.expression.as(MemberAccessExprSyntax.self)?.declName.baseName.text,
-              let osType = levelNameToLogMethod(levelName) else {
-            fatalError("Level name not present")
-        }
-        return osType
-    }
-    
-    static func levelNameToLogMethod(_ levelName: String) -> ExprSyntax? {
+    static func levelNameToLogMethod(_ levelName: String) -> ExprSyntax {
         switch levelName {
-        case "warn":
-            return "warning"
-        case "err":
-            return "error"
-        default:
-            return ExprSyntax(stringLiteral: levelName)
+        case "warn": "warning"
+        case "err": "error"
+        default: ExprSyntax(stringLiteral: levelName)
         }
     }
     
     static func macroToLevelExpr(macro: TokenSyntax) -> ExprSyntax {
         if macro.text == "err" {
-            return ExprSyntax(".error")
+            ExprSyntax(".error")
         } else {
-            return ExprSyntax(".\(macro)")
+            ExprSyntax(".\(macro)")
         }
     }
 }

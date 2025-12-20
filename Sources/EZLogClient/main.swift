@@ -5,6 +5,9 @@ let a = "abc"
 var logger = EZLogger(subsystem: "com.app.my", category: "SomeCategory")
 var other = EZLogger(subsystem: "com.app.my", category: "OtherCategory", logLevel: .notice)
 #log(logger, level: .trace, "Some log - trace: \(a, privacy: .private)")
+let level = LogLevel.debug
+#log(logger, level: level, "Some log - debug: \(a, privacy: .private)")
+#log(logger, level: .trace, "Some log - trace: \(a, privacy: .private)")
 #trace(logger, "Some trace \(a, align: .right(columns: 20))")
 #debug(logger, "Some debug \(a, privacy: .public)")
 #info(logger, "Some info \(a, privacy: .private(mask: .hash))")
@@ -48,3 +51,5 @@ struct Slow: CustomStringConvertible {
 #trace(other, "Avoided for log level: \(Slow())")
 #notice(other, "After")
 
+
+#notice(.disabled, "Something")

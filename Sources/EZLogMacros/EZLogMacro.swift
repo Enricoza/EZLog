@@ -12,10 +12,18 @@ import SwiftSyntaxMacros
 import SwiftDiagnostics
 
 public struct EZLogMacro: ExpressionMacro {
+    
     public static func expansion(
         of node: some FreestandingMacroExpansionSyntax,
         in context: some MacroExpansionContext
     ) throws -> ExprSyntax {
+        try logExpression(of: node, in: context).render()
+    }
+    
+    static func logExpression(
+        of node: some FreestandingMacroExpansionSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> LogExpression {
         let macro = node.macro.text
         let arguments = node.argumentList.map { $0 }
         guard macro == "log" else {
@@ -25,10 +33,10 @@ public struct EZLogMacro: ExpressionMacro {
                         .diagnoseWith(node: node.argumentList),
                 ])
             }
-            return expansionLog(loggerArgument: arguments[0],
-                                level: macroToLevelExpr(macro: node.macro),
-                                logMethod: levelNameToLogMethod(macro),
-                                messageArgument: arguments[1])
+            return LogExpression(loggerArgument: arguments[0],
+                                 level: macroToLevelExpr(macro: node.macro),
+                                 logMethod: levelNameToLogMethod(macro),
+                                 messageArgument: arguments[1])
         }
         guard arguments.count == 3 else {
             guard arguments.count == 2 else {
@@ -37,66 +45,33 @@ public struct EZLogMacro: ExpressionMacro {
                         .diagnoseWith(node: node.argumentList),
                 ])
             }
-            return expansionLog(loggerArgument: arguments[0],
-                                level: macroToLevelExpr(macro: "notice"),
-                                logMethod: "log",
-                                messageArgument: arguments[1])
+            return LogExpression(loggerArgument: arguments[0],
+                                 level: macroToLevelExpr(macro: "notice"),
+                                 logMethod: "log",
+                                 messageArgument: arguments[1])
         }
-        return expansionLog(loggerArgument: arguments[0],
-                            levelArgument: arguments[1],
-                            messageArgument: arguments[2])
+        return logExpr(loggerArgument: arguments[0],
+                       levelArgument: arguments[1],
+                       messageArgument: arguments[2])
     }
     
-    static func expansionLog(
+    static func logExpr(
         loggerArgument: LabeledExprListSyntax.Element,
         levelArgument: LabeledExprListSyntax.Element,
         messageArgument: LabeledExprListSyntax.Element
-    ) -> ExprSyntax {
+    ) -> LogExpression {
         guard let member = levelArgument.expression.as(MemberAccessExprSyntax.self),
               member.base == nil || member.base?.as(DeclReferenceExprSyntax.self)?.baseName.text == "LogLevel" else {
-            return expansionLog(loggerArgument: loggerArgument,
-                                level: levelArgument.expression,
-                                logMethod: "log",
-                                levelArgument: "\(levelArgument.expression).toOSLogType()",
-                                messageArgument: messageArgument)
+            return LogExpression(loggerArgument: loggerArgument,
+                                 level: levelArgument.expression,
+                                 logMethod: "log",
+                                 levelArgument: "\(levelArgument.expression).toOSLogType()",
+                                 messageArgument: messageArgument)
         }
-        return expansionLog(loggerArgument: loggerArgument,
-                            level: ExprSyntax(member),
-                            logMethod: levelNameToLogMethod(member.declName.baseName.text),
-                            messageArgument: messageArgument)
-    }
-
-    static func expansionLog(
-        loggerArgument: LabeledExprListSyntax.Element,
-        level: ExprSyntax,
-        logMethod: ExprSyntax,
-        levelArgument: ExprSyntax? = nil,
-        messageArgument: LabeledExprListSyntax.Element
-    ) -> ExprSyntax {
-        let sanitizedLogger = sanitizeLoggerArgument(loggerArgument)
-        let methodExpression = logMethodExpr(logMethod: logMethod, levelArgument: levelArgument, messageArgument: messageArgument)
-        return """
-        \(sanitizedLogger).allows(level: \(level)) ? \(sanitizedLogger).logger.\(methodExpression) : ()
-        """
-    }
-    
-    static func logMethodExpr(logMethod: ExprSyntax,
-                              levelArgument: ExprSyntax? = nil,
-                              messageArgument: LabeledExprListSyntax.Element) -> ExprSyntax {
-        if let levelArgument {
-            "\(logMethod)(level: \(levelArgument), \(messageArgument))"
-        } else {
-            "\(logMethod)(\(messageArgument))"
-        }
-    }
-    
-    static func sanitizeLoggerArgument(_ argument: LabeledExprListSyntax.Element) -> ExprSyntax {
-        guard var memberAccess = argument.expression.as(MemberAccessExprSyntax.self),
-              memberAccess.base == nil else {
-            return argument.expression
-        }
-        memberAccess.base = "EZLogger"
-        return ExprSyntax(memberAccess)
+        return LogExpression(loggerArgument: loggerArgument,
+                             level: ExprSyntax(member),
+                             logMethod: levelNameToLogMethod(member.declName.baseName.text),
+                             messageArgument: messageArgument)
     }
     
     static func levelNameToLogMethod(_ levelName: String) -> ExprSyntax {
@@ -109,7 +84,7 @@ public struct EZLogMacro: ExpressionMacro {
     
     static func macroToLevelExpr(macro: TokenSyntax) -> ExprSyntax {
         switch macro.text {
-        case "err": "error"
+        case "err": ".error"
         default: ".\(macro)"
         }
     }

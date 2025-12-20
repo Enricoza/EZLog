@@ -1,3 +1,10 @@
+//
+//  main.swift
+//
+//
+//  Created by Enrico Zannini on 13/12/25.
+//
+
 import EZLog
 import OSLog
 

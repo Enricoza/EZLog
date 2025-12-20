@@ -1,3 +1,10 @@
+//
+//  EZLogTests.swift
+//
+//
+//  Created by Enrico Zannini on 13/12/25.
+//
+
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros

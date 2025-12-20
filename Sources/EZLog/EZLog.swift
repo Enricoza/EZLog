@@ -1,3 +1,10 @@
+//
+//  EZLog.swift
+//
+//
+//  Created by Enrico Zannini on 13/12/25.
+//
+
 import OSLog
 
 @freestanding(expression)

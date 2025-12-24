@@ -16,13 +16,13 @@ import XCTest
 import EZLogMacros
 
 let testMacros: [String: Macro.Type] = [
-    "trace": EZLogMacro.self,
-    "debug": EZLogMacro.self,
-    "info": EZLogMacro.self,
-    "notice": EZLogMacro.self,
-    "warn": EZLogMacro.self,
-    "err": EZLogMacro.self,
-    "fault": EZLogMacro.self,
+    "trace": EZNamedLogMacro.self,
+    "debug": EZNamedLogMacro.self,
+    "info": EZNamedLogMacro.self,
+    "notice": EZNamedLogMacro.self,
+    "warn": EZNamedLogMacro.self,
+    "err": EZNamedLogMacro.self,
+    "fault": EZNamedLogMacro.self,
     "log": EZLogMacro.self,
 ]
 #endif

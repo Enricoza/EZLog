@@ -16,34 +16,34 @@ public macro log(_ logger: EZLogger,
 @freestanding(expression)
 public macro trace(_ logger: EZLogger,
                    _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                     type: "EZLogMacro")
+                                                                     type: "EZNamedLogMacro")
 
 @freestanding(expression)
 public macro debug(_ logger: EZLogger,
                    _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                     type: "EZLogMacro")
+                                                                     type: "EZNamedLogMacro")
 
 @freestanding(expression)
 public macro info(_ logger: EZLogger,
                   _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                    type: "EZLogMacro")
+                                                                    type: "EZNamedLogMacro")
 
 @freestanding(expression)
 public macro notice(_ logger: EZLogger,
                     _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                      type: "EZLogMacro")
+                                                                      type: "EZNamedLogMacro")
 
 @freestanding(expression)
 public macro warn(_ logger: EZLogger,
                   _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                    type: "EZLogMacro")
+                                                                    type: "EZNamedLogMacro")
 
 @freestanding(expression)
 public macro err(_ logger: EZLogger,
                  _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                   type: "EZLogMacro")
+                                                                   type: "EZNamedLogMacro")
 
 @freestanding(expression)
 public macro fault(_ logger: EZLogger,
                    _ message: OSLogMessage) -> Void = #externalMacro(module: "EZLogMacros",
-                                                                     type: "EZLogMacro")
+                                                                     type: "EZNamedLogMacro")

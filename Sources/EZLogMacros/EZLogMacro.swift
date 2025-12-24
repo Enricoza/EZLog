@@ -11,6 +11,15 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
+/**
+ * The macro used to expand the log macro.
+ *
+ * Examples:
+ * ```swift
+ * #log(logger, level: .debug, "Message")
+ * #log(logger, "Message")
+ * ```
+ */
 public struct EZLogMacro: ExpressionMacro {
     
     public static func expansion(

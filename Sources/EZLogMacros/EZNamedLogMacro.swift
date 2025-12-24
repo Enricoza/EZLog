@@ -12,7 +12,20 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
-
+/**
+ * The macro used to expand the named log macros.
+ *
+ * Examples:
+ * ```swift
+ * #trace(logger, "Message")
+ * #debug(logger, "Message")
+ * #info(logger, "Message")
+ * #notice(logger, "Message")
+ * #warn(logger, "Message")
+ * #err(logger, "Message")
+ * #fault(logger, "Message")
+ * ```
+ */
 public struct EZNamedLogMacro: ExpressionMacro {
 
     public static func expansion(

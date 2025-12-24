@@ -57,6 +57,3 @@ struct Slow: CustomStringConvertible {
 #notice(other, "Before")
 #trace(other, "Avoided for log level: \(Slow())")
 #notice(other, "After")
-
-
-#notice(.disabled, "Something")

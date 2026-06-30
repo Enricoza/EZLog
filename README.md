@@ -114,7 +114,7 @@ logger.allows(level: .debug) ? logger.logger.debug("Some other message \(somePub
 ```swift
 #trace(logger, "Some message")
 // Which expands to
-logger.allows(level: .debug) ? logger.logger.trace("Some Message) : ()
+logger.allows(level: .trace) ? logger.logger.trace("Some Message) : ()
 ```
 
 Note that you can create the `OSLogMessage` with all of the interpolations and privacy options it supports and they will be passed (as they are) to the underlying `Logger` instance:
